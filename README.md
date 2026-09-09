@@ -1,22 +1,70 @@
 # Clarivue
-Clarivue is a web app that turns lab reports into plain-language health insights — upload a PDF or photo, get markers explained, flagged results highlighted, and specialist recommendations, all with family profile support. Not a substitute for professional medical advice.
-# Clarivue
 
-**Stop guessing what your report means.**
+A health-management dashboard: upload a lab report (PDF or photo) and get a plain-language
+breakdown, track appointments and medications, manage multiple family profiles, and ask a
+built-in assistant about common lab markers — all running locally in your browser.
 
-Clarivue is a web application that helps everyday people understand their medical lab reports without needing a medical degree. Upload a lab report and get a plain-language breakdown of what each marker means, what's in range, what's flagged, and what to do next.
+## Run it
 
-## Features
+```bash
+npm install
+npm run dev
+```
 
-- 📄 **Report upload & analysis** — Supports PDF, JPG, or PNG (up to 15MB), processed entirely in-browser
-- 🔍 **Plain-language breakdown** — Translates medical shorthand into terms anyone can understand
-- 🩺 **Specialist matching** — Flagged results point you to the right kind of doctor (cardiologist, endocrinologist, GP, etc.)
-- 💬 **Ask Clarivue** — AI assistant for questions about specific markers or general health
-- 👨‍👩‍👧 **Family profiles** — Track reports, appointments, and medications separately for each family member
-- 📅 **Appointments & medications tracking**
-- 📊 **Dashboard overview** — Reports, flagged findings, upcoming visits, and active medications at a glance
+Then open the local URL Vite prints (usually `http://localhost:5173`).
 
-## Disclaimer
+## Sections
 
-Clarivue is for informational purposes only and does not provide medical diagnoses. Always confirm results with a licensed healthcare provider.
+- **Overview** — stats, recent reports, next appointment, today's medications, health tip
+- **Reports** — upload PDF/JPG/PNG, get a plain-language breakdown with causes/symptoms,
+  specialist suggestions, and a PDF export
+- **Appointments** — book/cancel mock appointments with a specialist directory
+- **Medications** — add medicines, mark daily doses taken, track 7-day adherence
+- **Family** — add multiple profiles (e.g. spouse, kids); Reports/Appointments/Medications
+  are scoped to whichever profile is active, switchable from the top bar
+- **Notifications** — a unified feed of flagged findings, upcoming visits, and pending doses
+- **Ask Clarivue** — a local, rule-based chat assistant for common health questions
+
+## How it works
+
+- **Auth** — Sign up / log in is handled entirely in the browser with `localStorage`.
+  There's no backend; accounts and sessions live only on your machine. Fine for a demo, but
+  **not** secure enough for a real production app.
+- **File reading** — PDFs are parsed with `pdfjs-dist`. If a PDF has no embedded text (i.e.
+  it's scanned), or you upload a JPG/PNG directly, OCR runs in-browser via `tesseract.js`.
+- **Analysis** — `src/utils/analyzeReport.js` is a rule-based engine: it looks for common
+  lab markers in the extracted text and compares them to typical reference ranges. This is
+  a heuristic demo, **not** a real diagnostic AI model.
+- **Assistant** — `src/data/knowledgeBase.js` + `src/utils/chatEngine.js`-style keyword
+  matching in `getAssistantAnswer`. No external API call — every answer is pre-written.
+- **PDF export** — `jspdf` generates a downloadable summary of any analyzed report.
+- **Charts** — `recharts` renders a normal-vs-flagged trend across report history.
+
+## Important
+
+This project is a portfolio/demo app. It is **not a medical device and does not provide
+real diagnoses**. Every analysis and chat response carries a disclaimer for this reason —
+please keep it there if you extend the project, and always point real users toward
+licensed medical professionals.
+
+## Project structure
+
+```
+src/
+  components/   Sidebar, AppShell, ProfileSwitcher, UploadZone, FindingCard, TrendChart, ...
+  context/      Auth, Reports, Family, Appointments, Medications
+  data/         knowledgeBase.js (assistant Q&A)
+  pages/        Landing, Login, Signup, Overview, Reports, Appointments, Medications,
+                Family, Notifications, Assistant, Profile
+  utils/        extractText.js (PDF/OCR), analyzeReport.js (rule engine),
+                exportPdf.js, notifications.js
+```
+
+## Extending this into a real product
+
+To make this production-ready you'd want a real backend: a server with proper
+authentication (hashed + salted passwords, sessions/JWTs), a real database instead of
+`localStorage`, a real appointment-booking integration, push notifications, and either a
+licensed medical-NLP service or a partnership with an actual clinical review process
+before showing any health guidance to real users.
 
